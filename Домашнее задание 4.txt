@@ -1,0 +1,95 @@
+Для работы использовала 
+https://www.db-fiddle.com/f/v2qn1cX1yNUfJmx5QegBAs/1
+
+1) 
+•Найти информацию о всех контрактах, связанных с сотрудниками департамента «Logistic». Вывести: contract_id, employee_name
+
+SELECT
+	contract.id,
+	employees.name
+FROM department
+	JOIN employees ON department.id = employees.department_id
+	JOIN executor ON employees.id = executor.tab_no
+WHERE department.name = 'Logistic'
+
+=====================================================================
+2)
+•Найти среднюю стоимость контрактов, заключенных сотрудников Ivan Ivanov. Вывести: среднее значение amount
+
+SELECT
+	ROUND(AVG(amount), 2) AS avg_amount
+FROM employees 
+	JOIN executor ON employees.id = executor.tab_no
+	JOIN contract ON executor.contract_id = contract.id
+WHERE employees.name = 'Ivan Ivanov'
+
+=====================================================================
+
+3)
+•Найти самую часто встречающуюся локации среди всех заказчиков. Вывести: location, count (общее кол-во строк)
+
+SELECT
+	location,
+	COUNT(location) AS count
+FROM customer
+GROUP BY location
+HAVING COUNT(location) = (
+	SELECT COUNT(location) AS count
+	FROM customer
+	GROUP BY location
+	ORDER BY count
+	DESC
+	LIMIT 1)
+=====================================================================
+
+4)
+•Найти контракты одинаковой стоимости. Вывести count, amount
+
+SELECT
+	amount,
+	COUNT(amount)
+FROM contract
+GROUP BY amount
+HAVING COUNT (amount) > 1
+
+=====================================================================
+5)
+•Найти заказчика с наименьшей средней стоимостью контрактов. Вывести customer_name, среднее значение amount
+
+SELECT 
+	customer_name,
+	ROUND(AVG(contract.amount), 2) AS avg_amount
+FROM contract
+	JOIN customer ON contract.customer_id = customer.id
+GROUP BY customer_name 
+HAVING ROUND(AVG(contract.amount), 2) = (
+	SELECT ROUND(AVG(contract.amount), 2)
+	FROM contract
+		JOIN customer ON contract.customer_id = customer.id
+	GROUP BY customer_name 
+	ORDER BY AVG(contract.amount)
+	ASC
+	LIMIT 1)
+=====================================================================
+6)
+•Найти отдел, заключивший контрактов на наибольшую сумму. Вывести: department_name, sum
+
+SELECT
+	department.name,
+	SUM(contract.amount) AS sum
+FROM department
+	JOIN employees ON department.id = employees.department_id
+	JOIN executor ON employees.id = executor.tab_no
+	JOIN contract ON executor.contract_id = contract.id
+GROUP BY department.name
+HAVING SUM(contract.amount) = (
+	SELECT SUM(contract.amount)
+	FROM department
+		JOIN employees ON department.id = employees.department_id
+		JOIN executor ON employees.id = executor.tab_no
+		JOIN contract ON executor.contract_id = contract.id
+	GROUP BY department.name
+	ORDER BY SUM(contract.amount)
+	DESC
+	LIMIT 1)
+
